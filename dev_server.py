@@ -350,22 +350,29 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
 		self.send_header('Connection', 'close')
 		self.end_headers()
 
+	def _route(self):
+		from urllib.parse import urlsplit
+
+		return urlsplit(self.path).path
+
 	def do_GET(self):
-		if self.path == '/' or self.path == '/index.html':
+		path = self._route()
+		if path in ('/', '/index.html'):
 			self._send_html()
-		elif self.path == '/api/status':
+		elif path == '/api/status':
 			self._send_json()
-		elif self.path == '/health':
+		elif path == '/health':
 			self._send_health()
 		else:
 			self._send_404()
 
 	def do_HEAD(self):
-		if self.path == '/' or self.path == '/index.html':
+		path = self._route()
+		if path in ('/', '/index.html'):
 			self._send_html()
-		elif self.path == '/api/status':
+		elif path == '/api/status':
 			self._send_json()
-		elif self.path == '/health':
+		elif path == '/health':
 			self._send_health()
 		else:
 			self._send_404()
