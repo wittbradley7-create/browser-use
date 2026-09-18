@@ -1,0 +1,36 @@
+services:
+  app:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "3000:3000"
+    environment:
+      - UV_PYTHON_PREFERENCE=only-system
+      - UV_LINK_MODE=copy
+      - UV_CACHE_DIR=/root/.cache/uv
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - IN_DOCKER=True
+      - BROWSER_USE_LOGGING_LEVEL=info
+      - ANONYMIZED_TELEMETRY=false
+      - BROWSER_USE_VERSION_CHECK=false
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+    env_file:
+      - ./.env.base44-defaults
+      - /run/base44/app.env
+    command: >
+      sh -c "
+        pip install --quiet uv &&
+        uv sync &&
+        echo '[setup] Dependencies installed. Starting dashboard...' &&
+        uv run python dev_server.py
+      "
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
